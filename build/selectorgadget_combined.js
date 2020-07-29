@@ -9471,12 +9471,12 @@ patch_obj.prototype.toString = function () {
 			});
 			this.sg_div.append(path);
 
-			this.copy_button = jQuerySG('<input type="button" value="复制"/>').bind("click", {
+			this.copy_button = jQuerySG('<input type="button" value="复制 CSS Selector"/>').bind("click", {
 				'self': this
 			}, this.copyCSS).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field');
 			this.sg_div.append(this.copy_button);
 
-			this.accurate_button = jQuerySG('<input type="button" value="精确"/>').bind("click", {
+			this.accurate_button = jQuerySG('<input type="button" value="精准模式"/>').bind("click", {
 				'self': this
 			}, this.accurateCSS).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field');
 			this.sg_div.append(this.accurate_button);
@@ -9486,7 +9486,7 @@ patch_obj.prototype.toString = function () {
 			}, this.clearEverything).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field');
 			this.sg_div.append(this.clear_button);
 
-			this.sg_div.append(jQuerySG('<input type="button" value="Toggle Position"/>').click(function () {
+			this.sg_div.append(jQuerySG('<input type="button" value="改变浮动条位置"/>').click(function () {
 				if (self.sg_div.hasClass('selectorgadget_top')) {
 					return self.sg_div.removeClass('selectorgadget_top').addClass('selectorgadget_bottom');
 				} else {
