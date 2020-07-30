@@ -7828,6 +7828,7 @@ function diff_match_patch(){this.Diff_Timeout=1.0;this.Diff_EditCost=4;this.Diff
       }
       return this.clearSelected();
 	};
+
 	SelectorGadget.prototype.changeMode = function (e) {
 		var self;
 		self = (e && e.data && e.data.self) || this;
@@ -7839,7 +7840,41 @@ function diff_match_patch(){this.Diff_Timeout=1.0;this.Diff_EditCost=4;this.Diff
 			self.mode = 'accurate';
 			self.mode_switch_button.attr('value', '切换到智能预测模式');
 		}
-	}
+	};
+
+	SelectorGadget.prototype.accurateCSS = function (e) {
+		var self;
+					self = (e && e.data && e.data.self) || this;
+		self.clearSelected();
+		self.suggestPredicted(accurate_path[0]);
+		// jQuerySG(accurate_path).addClass('selectorgadget_selected');
+		return self.setPath(accurate_path[0]);
+	};
+
+	SelectorGadget.prototype.copyCSS = function (e) {
+		var self;
+					self = (e && e.data && e.data.self) || this;
+		path = self.path_output_field.value;
+		return self.copyText(path);
+	};
+
+	SelectorGadget.prototype.copyXpath = function (e) {
+		var self;
+		self = (e && e.data && e.data.self) || this;
+		path = self.path_output_field.value;
+		return self.copyText(self.prediction_helper.cssToXPath(path));
+	};
+
+	SelectorGadget.prototype.copyText = function (text){
+		var oInput = document.createElement('input');
+		oInput.value = text;
+		document.body.appendChild(oInput);
+		oInput.select(); // 选择对象
+		document.execCommand("Copy"); // 执行浏览器复制命令
+		oInput.className = 'oInput';
+		oInput.style.display='none';
+		alert('复制成功');
+	};
 
     SelectorGadget.prototype.suggestPredicted = function(prediction) {
       var count;
@@ -7977,38 +8012,53 @@ function diff_match_patch(){this.Diff_Timeout=1.0;this.Diff_EditCost=4;this.Diff
     SelectorGadget.prototype.makeStandardInterface = function() {
       var path, self;
       self = this;
-      path = jQuerySG('<input>').attr('id', 'selectorgadget_path_field').addClass('selectorgadget_ignore').addClass('selectorgadget_input_field').keydown(function(e) {
-        if (e.keyCode === 13) {
-          return self.refreshFromPath(e);
-        }
-      }).focus(function() {
-        return jQuerySG(this).select();
+      path = jQuerySG('<input>').attr('id', 'selectorgadget_path_field').addClass('selectorgadget_ignore').addClass('selectorgadget_input_field').keydown(function (e) {
+      	if (e.keyCode === 13) {
+      		return self.refreshFromPath(e);
+      	}
+      }).focus(function () {
+      	return jQuerySG(this).select();
       });
-	  this.sg_div.append(path);
-	  
+      this.sg_div.append(path);
+
+      this.copy_button = jQuerySG('<input type="button" value="复制 CSS Selector"/>').bind("click", {
+      	'self': this
+      }, this.copyCSS).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field');
+      this.sg_div.append(this.copy_button);
+
       this.clear_button = jQuerySG('<input type="button" value="Clear"/>').bind("click", {
-        'self': this
+      	'self': this
       }, this.clearEverything).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field');
-	  this.sg_div.append(this.clear_button);
+      this.sg_div.append(this.clear_button);
 
-	  this.mode = 'accurate';
-	  this.mode_switch_button = jQuerySG('<input type="button" value="切换到智能预测模式"/>').bind("click", {'self': this}, this.changeMode).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field')
-	  this.sg_div.append(this.mode_switch_button);
+      this.mode = 'accurate';
+      this.mode_switch_button = jQuerySG('<input type="button" value="切换到智能预测模式"/>').bind("click", {
+      	'self': this
+      }, this.changeMode).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field')
+      this.sg_div.append(this.mode_switch_button);
 
-    //   this.sg_div.append(jQuerySG('<input type="button" value="Toggle Position"/>').click(function() {
-    //     if (swelf.sg_div.hasClass('selectorgadget_top')) {
-    //       return self.sg_div.removeClass('selectorgadget_top').addClass('selectorgadget_bottom');
-    //     } else {
-    //       return self.sg_div.removeClass('selectorgadget_bottom').addClass('selectorgadget_top');
-    //     }
-	//   }).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field'));
-	  
-      this.sg_div.append(jQuerySG('<input type="button" value="选择好后点击此处"/>').bind("click", {
-        'self': this
-      }, this.showXPath).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field'));
+      this.sg_div.append(jQuerySG('<input type="button" value="位置"/>').click(function () {
+      	if (self.sg_div.hasClass('selectorgadget_top')) {
+      		return self.sg_div.removeClass('selectorgadget_top').addClass('selectorgadget_bottom');
+      	} else {
+      		return self.sg_div.removeClass('selectorgadget_bottom').addClass('selectorgadget_top');
+      	}
+      }).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field'));
+
+      this.sg_div.append(jQuerySG('<input type="button" value="复制 Xpath"/>').bind("click", {
+      	'self': this
+      }, this.copyXpath).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field'));
+
+      this.sg_div.append(jQuerySG('<input type="button" value="?"/>').bind("click", {
+      	'self': this
+      }, this.showHelp).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field'));
+
+      this.sg_div.append(jQuerySG('<input type="button" value="X"/>').bind("click", {
+      	'self': this
+      }, this.unbindAndRemoveInterface).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field'));
 
       return this.path_output_field = path.get(0);
-    };
+      };
 
     SelectorGadget.prototype.removeInterface = function(e) {
       this.sg_div.remove();
