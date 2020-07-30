@@ -7199,7 +7199,7 @@ function diff_match_patch(){this.Diff_Timeout=1.0;this.Diff_EditCost=4;this.Diff
         _this = this;
       parts = this.tokenizeCss(css);
       priorities = this.tokenPriorities(parts);
-      ordering = this.orderFromPriorities(priorities);
+	  ordering = this.orderFromPriorities(priorities);
       selector = this.cleanCss(css);
       look_back_index = -1;
       best_so_far = "";
@@ -7497,7 +7497,9 @@ function diff_match_patch(){this.Diff_Timeout=1.0;this.Diff_EditCost=4;this.Diff
 
     SelectorGadget.prototype.ignore_class = 'selectorgadget_ignore';
 
-    SelectorGadget.prototype.unbound = false;
+	SelectorGadget.prototype.unbound = false;
+	
+	SelectorGadget.prototype.mode = 'accurate';
 
     SelectorGadget.prototype.prediction_helper = new DomPredictionHelper();
 
@@ -7749,8 +7751,13 @@ function diff_match_patch(){this.Diff_Timeout=1.0;this.Diff_EditCost=4;this.Diff
         w_elem.addClass('selectorgadget_selected');
         gadget.selected.push(elem);
       }
-      gadget.clearSuggested();
-      prediction = gadget.prediction_helper.predictCss(jQuerySG(gadget.selected), jQuerySG(gadget.rejected.concat(gadget.restricted_elements)));
+	  gadget.clearSuggested();
+	  if (gadget.mode === 'accurate'){
+		prediction =  gadget.prediction_helper.predictCss(jQuerySG(gadget.selected), jQuerySG(':not(.selectorgadget_selected)'));
+	  }else{
+		prediction = gadget.prediction_helper.predictCss(jQuerySG(gadget.selected), jQuerySG(gadget.rejected.concat(gadget.restricted_elements)));
+	  }
+
       gadget.suggestPredicted(prediction);
       gadget.setPath(prediction);
       gadget.removeBorders();
@@ -7820,7 +7827,19 @@ function diff_match_patch(){this.Diff_Timeout=1.0;this.Diff_EditCost=4;this.Diff
         this.setupEventHandlers();
       }
       return this.clearSelected();
-    };
+	};
+	SelectorGadget.prototype.changeMode = function (e) {
+		var self;
+		self = (e && e.data && e.data.self) || this;
+		self.clearEverything();
+		if (self.mode == 'accurate') {
+			self.mode = 'predict';
+			self.mode_switch_button.attr('value', '切换到精确模式');
+		} else {
+			self.mode = 'accurate';
+			self.mode_switch_button.attr('value', '切换到智能预测模式');
+		}
+	}
 
     SelectorGadget.prototype.suggestPredicted = function(prediction) {
       var count;
@@ -7965,27 +7984,29 @@ function diff_match_patch(){this.Diff_Timeout=1.0;this.Diff_EditCost=4;this.Diff
       }).focus(function() {
         return jQuerySG(this).select();
       });
-      this.sg_div.append(path);
+	  this.sg_div.append(path);
+	  
       this.clear_button = jQuerySG('<input type="button" value="Clear"/>').bind("click", {
         'self': this
       }, this.clearEverything).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field');
-      this.sg_div.append(this.clear_button);
-      this.sg_div.append(jQuerySG('<input type="button" value="Toggle Position"/>').click(function() {
-        if (self.sg_div.hasClass('selectorgadget_top')) {
-          return self.sg_div.removeClass('selectorgadget_top').addClass('selectorgadget_bottom');
-        } else {
-          return self.sg_div.removeClass('selectorgadget_bottom').addClass('selectorgadget_top');
-        }
-      }).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field'));
-      this.sg_div.append(jQuerySG('<input type="button" value="XPath"/>').bind("click", {
+	  this.sg_div.append(this.clear_button);
+
+	  this.mode = 'accurate';
+	  this.mode_switch_button = jQuerySG('<input type="button" value="切换到智能预测模式"/>').bind("click", {'self': this}, this.changeMode).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field')
+	  this.sg_div.append(this.mode_switch_button);
+
+    //   this.sg_div.append(jQuerySG('<input type="button" value="Toggle Position"/>').click(function() {
+    //     if (swelf.sg_div.hasClass('selectorgadget_top')) {
+    //       return self.sg_div.removeClass('selectorgadget_top').addClass('selectorgadget_bottom');
+    //     } else {
+    //       return self.sg_div.removeClass('selectorgadget_bottom').addClass('selectorgadget_top');
+    //     }
+	//   }).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field'));
+	  
+      this.sg_div.append(jQuerySG('<input type="button" value="选择好后点击此处"/>').bind("click", {
         'self': this
       }, this.showXPath).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field'));
-      this.sg_div.append(jQuerySG('<input type="button" value="?"/>').bind("click", {
-        'self': this
-      }, this.showHelp).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field'));
-      this.sg_div.append(jQuerySG('<input type="button" value="X"/>').bind("click", {
-        'self': this
-      }, this.unbindAndRemoveInterface).addClass('selectorgadget_ignore').addClass('selectorgadget_input_field'));
+
       return this.path_output_field = path.get(0);
     };
 
